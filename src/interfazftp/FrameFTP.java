@@ -13,6 +13,7 @@ import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JScrollPane;
@@ -21,14 +22,12 @@ import javax.swing.JTextField;
 import javax.swing.JTextPane;
 import javax.swing.JToolBar;
 import javax.swing.JTree;
+import org.apache.commons.net.ftp.FTPClient;
 
 /**
  *
  * @author oriol
  */
-
-
-
 public class FrameFTP extends javax.swing.JFrame {
 
     /**
@@ -36,26 +35,49 @@ public class FrameFTP extends javax.swing.JFrame {
      */
     public FrameFTP() {
         initComponents();
+        FTPAccessInterface ftpAccess = new FTPAccess();
         ftpmetodo();
     }
 
     
-   
-    public void ftpmetodo(){
-        
-        setLayout(new BorderLayout(5, 5)); 
-        
-     
+    
+    public void ftpmetodo() {
+
+        setLayout(new BorderLayout(5, 5));
+
         JMenuBar menu = new JMenuBar();
+
+        JMenu fileMenu = new JMenu("File");
+        JMenu helpMenu = new JMenu("Menu");
+
+        JMenuItem guardarCambios = new JMenuItem("Guardar cambios");
+        JMenuItem guardarYSalir = new JMenuItem("Guardar y salir");
+        JMenuItem cerrarArchivo = new JMenuItem("Cerrar archvio");
+        JMenuItem cerrar = new JMenuItem("Cerrar");
+
+        fileMenu.add(guardarCambios);
+        fileMenu.add(guardarYSalir);
+        fileMenu.add(cerrarArchivo);
+        fileMenu.add(cerrar);
+
+        cerrar.addActionListener(e -> System.exit(0));
+
+        JMenuItem aboutItem = new JMenuItem("About");
+        helpMenu.add(aboutItem);
+
+        //mensaje de about
+        aboutItem.addActionListener(e -> {
+            javax.swing.JOptionPane.showMessageDialog(this, "EditOnCloud v1.0\nDesarrollado por Oriol Cárdenas",
+                    "About", javax.swing.JOptionPane.INFORMATION_MESSAGE);
+        });
+
         
-        JMenu file = new JMenu("File");
-        JMenu help = new JMenu("Menu");
         
-        menu.add(file);
-        menu.add(help);
-        
+        menu.add(fileMenu);
+        menu.add(helpMenu);
+
         setJMenuBar(menu);
-        
+
         // Panel north
         JPanel northPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         northPanel.add(new JLabel("Dirección:"));
@@ -76,46 +98,36 @@ public class FrameFTP extends javax.swing.JFrame {
 
         JButton conectarButton = new JButton("Conectar:");
         JButton desconectarButton = new JButton("Desconactar:");
-        desconectarButton.setEnabled(false); 
+        desconectarButton.setEnabled(false);
         northPanel.add(conectarButton);
         northPanel.add(desconectarButton);
-        add(northPanel,BorderLayout.NORTH);
+        add(northPanel, BorderLayout.NORTH);
 
-       
-
-      
         JPanel westPanel = new JPanel(new BorderLayout());
-        JTree fileTree = new JTree(); 
+        JTree fileTree = new JTree();
         JScrollPane treeScrollPane = new JScrollPane(fileTree);
         westPanel.add(treeScrollPane, BorderLayout.CENTER);
-        add(westPanel,BorderLayout.WEST);
-        
+        add(westPanel, BorderLayout.WEST);
 
-        
         JPanel centerPanel = new JPanel(new BorderLayout());
         JTextPane textEditor = new JTextPane();
         JScrollPane textScrollPane = new JScrollPane(textEditor);
         centerPanel.add(textScrollPane, BorderLayout.CENTER);
 
-      
         JToolBar toolBar = new JToolBar();
         toolBar.addSeparator();
         toolBar.add(new JComboBox<>(new String[]{"Paragraph"}));
         toolBar.add(new JComboBox<>(new String[]{"12 pt", "14 pt", "16 pt"}));
         centerPanel.add(toolBar, BorderLayout.NORTH);
-        add(centerPanel,BorderLayout.CENTER);
+        add(centerPanel, BorderLayout.CENTER);
 
-        
-
-        
         JTextArea logArea = new JTextArea(5, 50);
         logArea.setEditable(false);
         JScrollPane logScrollPane = new JScrollPane(logArea);
-        add(logScrollPane,BorderLayout.SOUTH);
+        add(logScrollPane, BorderLayout.SOUTH);
 
-      
     }
-    
+
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
