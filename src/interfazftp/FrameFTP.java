@@ -22,26 +22,37 @@ import javax.swing.JTextField;
 import javax.swing.JTextPane;
 import javax.swing.JToolBar;
 import javax.swing.JTree;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import org.apache.commons.net.ftp.FTPClient;
+
 
 /**
  *
  * @author oriol
  */
+
 public class FrameFTP extends javax.swing.JFrame {
 
-    /**
-     * Creates new form FrameFTP
-     */
+private JTextArea logArea;
+    private FTPAccessInterface ftpAccess;
+
     public FrameFTP() {
         initComponents();
-        FTPAccessInterface ftpAccess = new FTPAccess();
+        ftpAccess = new FTPAccess();
+        ftpAccess.addMessageListener(message -> {
+            javax.swing.SwingUtilities.invokeLater(() -> {
+                logArea.append(message + "\n");
+            });
+        });
+
         ftpmetodo();
+
     }
 
     
-    
+
     public void ftpmetodo() {
+        ftpAccess = new FTPAccess();
 
         setLayout(new BorderLayout(5, 5));
 
@@ -71,8 +82,6 @@ public class FrameFTP extends javax.swing.JFrame {
                     "About", javax.swing.JOptionPane.INFORMATION_MESSAGE);
         });
 
-        
-        
         menu.add(fileMenu);
         menu.add(helpMenu);
 
@@ -98,9 +107,42 @@ public class FrameFTP extends javax.swing.JFrame {
 
         JButton conectarButton = new JButton("Conectar:");
         JButton desconectarButton = new JButton("Desconactar:");
+        conectarButton.addActionListener(e -> {
+            try {
+                String direccion = direccionField.getText();
+                int puerto = Integer.parseInt(puertoField.getText());
+                String usuario = usuarioField.getText();
+                String contraseña = new String(contraseñaField.getPassword());
+
+                if (ftpAccess.connectar(direccion, puerto, usuario, contraseña)) {
+                    logArea.append("Conexión exitosa\n");
+                    conectarButton.setEnabled(false);
+                    desconectarButton.setEnabled(true);
+                } else {
+                    logArea.append("Error al conectar\n");
+                }
+            } catch (Exception ex) {
+                logArea.append("Error: " + ex.getMessage() + "\n");
+            }
+        });
+        desconectarButton.addActionListener(e -> {
+            try {
+                ftpAccess.desconectar();
+                logArea.append("Desconexión exitosa\n");
+                conectarButton.setEnabled(true);
+                desconectarButton.setEnabled(false);
+            } catch (Exception ex) {
+                logArea.append("Error al desconectar: " + ex.getMessage() + "\n");
+            }
+        });
+
         desconectarButton.setEnabled(false);
         northPanel.add(conectarButton);
         northPanel.add(desconectarButton);
+
+        JButton uploadButton = new JButton("Subir Archivo");
+        uploadButton.addActionListener(e -> onUploadFile());
+        northPanel.add(uploadButton);
         add(northPanel, BorderLayout.NORTH);
 
         JPanel westPanel = new JPanel(new BorderLayout());
@@ -121,11 +163,48 @@ public class FrameFTP extends javax.swing.JFrame {
         centerPanel.add(toolBar, BorderLayout.NORTH);
         add(centerPanel, BorderLayout.CENTER);
 
-        JTextArea logArea = new JTextArea(5, 50);
+        logArea = new JTextArea(5, 50);
         logArea.setEditable(false);
         JScrollPane logScrollPane = new JScrollPane(logArea);
         add(logScrollPane, BorderLayout.SOUTH);
 
+    }
+
+    public void onUploadFile() {
+         javax.swing.JFileChooser fileChooser = new javax.swing.JFileChooser();
+        fileChooser.setFileFilter(new FileNameExtensionFilter("Archivos HTML", "html", "htm"));
+        int result = fileChooser.showOpenDialog(this);
+
+        if (result == javax.swing.JFileChooser.APPROVE_OPTION) {
+            java.io.File selectedFile = fileChooser.getSelectedFile();
+            try {
+                ftpAccess.subirArchivo(selectedFile.getAbsolutePath(), "/" + selectedFile.getName());
+                logArea.append("Archivo subido: " + selectedFile.getName() + "\n");
+            } catch (Exception e) {
+                logArea.append("Error al subir el archivo: " + e.getMessage() + "\n");
+            }
+        }
+    }
+    public void onDownloadFile() {
+        javax.swing.JFileChooser fileChooser = new javax.swing.JFileChooser();
+        fileChooser.setDialogTitle("Selecciona la ubicación para guardar el archivo");
+
+        int result = fileChooser.showSaveDialog(this);
+        if (result == javax.swing.JFileChooser.APPROVE_OPTION) {
+            java.io.File destinationFile = fileChooser.getSelectedFile();
+
+            try {
+                String remotePath = "/ruta/del/archivo/en/el/servidor";
+                ftpAccess.bajarArchivo(remotePath, destinationFile.getAbsolutePath());
+                javax.swing.SwingUtilities.invokeLater(() -> {
+                    logArea.append("Archivo descargado con éxito: " + destinationFile.getAbsolutePath() + "\n");
+                });
+            } catch (Exception e) {
+                javax.swing.SwingUtilities.invokeLater(() -> {
+                    logArea.append("Error al descargar el archivo: " + e.getMessage() + "\n");
+                });
+            }
+        }
     }
 
     /**
@@ -133,6 +212,8 @@ public class FrameFTP extends javax.swing.JFrame {
      * WARNING: Do NOT modify this code. The content of this method is always
      * regenerated by the Form Editor.
      */
+                          
+
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
