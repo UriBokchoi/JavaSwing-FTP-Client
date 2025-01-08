@@ -9,8 +9,13 @@ package interfazftp;
  * @author oriol
  */
 public interface FTPAccessInterface {
+    
+     interface MessageListener {
+        void cuandoLlegaMensaje(String mensaje);
+    }
     boolean connectar(String server, int port, String user, String pass) throws Exception;
     void desconectar() throws Exception;
     boolean subirArchivo(String localPath, String remotePath) throws Exception;
     boolean bajarArchivo(String remotePath, String localPath) throws Exception;
+    void addMessageListener(MessageListener listener);
 }
